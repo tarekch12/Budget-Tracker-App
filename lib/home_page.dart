@@ -1,5 +1,7 @@
 // lib/home_page.dart
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:workshop_app/add_transaction_screen.dart';
 import 'package:workshop_app/list_item.dart';
 import 'package:workshop_app/stat_container.dart';
 
@@ -8,6 +10,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final box = Hive.box('budget');
+    final transactions = box.values.toList();
     return Scaffold(
       appBar: AppBar(title: const Text("Budget Tracker")),
       body: Padding(
@@ -87,33 +91,32 @@ class HomePage extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                children: const [
-                  ListItem(
-                    title: "Salary",
-                    amount: "15,000 DA",
-                    isIncome: true,
-                  ),
-                  ListItem(title: "Food", amount: "3,000 DA", isIncome: false),
-                  ListItem(
-                    title: "Transport",
-                    amount: "1,000 DA",
-                    isIncome: false,
-                  ),
-                  ListItem(
-                    title: "Groceries",
-                    amount: "1,000 DA",
-                    isIncome: false,
-                  ),
-                ],
-              ),
+              child: transactions.isEmpty
+                  ? const Center(child: Text("THE LIST IS EMPTY"))
+                  : ListView.builder(
+                      itemCount: transactions.length,
+                      itemBuilder: (context, index) {
+                        final transaction = transactions[index];
+                        return ListItem(
+                          title: transaction['title'],
+                          amount: transaction['amount'],
+                          isIncome: transaction['isIncome'],
+                        );
+                      },
+                    ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AddTransactionScreen(),
+            ),
+          );
+        },
         backgroundColor: const Color(0xFF0A8F6A),
         foregroundColor: Colors.white,
         child: const Icon(Icons.add_rounded),
